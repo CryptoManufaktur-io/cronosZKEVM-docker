@@ -773,7 +773,7 @@ start() {
   has_zkevm=0
 
   for file in "${compose_files[@]}"; do
-    if grep -q 'cronos_zkevm:' "$file"; then
+    if grep -q 'consensus:' "$file"; then
       has_zkevm=1
     fi
     if grep -q 'postgres:' "$file"; then
