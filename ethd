@@ -19,7 +19,7 @@ status() {
     *postgres.yml* )
       echo "----------------------------------------"
       echo "PostgreSQL Status (.initialized check)"
-      if docker exec cronos-zkevm-postgres test -f /dump/.initialized 2>/dev/null; then
+      if __docompose exec postgres test -f /dump/.initialized 2>/dev/null; then
         echo "✅ PostgreSQL is restored and ready."
       else
         echo "⏳ PostgreSQL is still restoring or not initialized yet."
@@ -29,7 +29,7 @@ status() {
     *cronos_zkevm.yml* )
       echo "----------------------------------------"
       echo "Cronos zkEVM Node Sync Status"
-      docker exec cronos-zkevm-node curl -s http://localhost:3060 | jq || echo "❌ Could not fetch status. Node may not be up yet."
+      __docompose exec curl -s http://localhost:3060 | jq || echo "❌ Could not fetch status. Node may not be up yet."
       echo
       ;;&
   esac
@@ -58,7 +58,7 @@ version() {
     *cronos_zkevm.yml* )
       echo "----------------------------------------"
       echo "Cronos zkEVM Node Version:"
-      __docompose exec cronos_zkevm /usr/local/bin/zksync_external_node --version || echo "❌ Could not get zkEVM node version"
+      __docompose exec consensus /usr/local/bin/zksync_external_node --version || echo "❌ Could not get zkEVM node version"
       echo
       ;;&
   esac
