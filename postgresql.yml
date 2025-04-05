@@ -1,0 +1,35 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  postgres:
+    build:
+      context: ./postgresql
+      dockerfile: ${SQL_DOCKERFILE}
+      args:
+        - DOCKER_TAG=${SQL_DOCKER_TAG}
+        - DOCKER_REPO=${SQL_DOCKER_REPO}
+    container_name: cronos-zkevm-postgres
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-zksync}
+      POSTGRES_USER: ${POSTGRES_USER:-zksync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_dump:/dump
+    ulimits:
+      nofile: 60000
+      nproc: 60000
+      memlock: -1
+    <<: *logging
+
+volumes:
+  postgres_data:
+  postgres_dump:

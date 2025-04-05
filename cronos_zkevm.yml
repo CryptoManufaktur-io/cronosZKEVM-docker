@@ -1,0 +1,54 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  consensus:
+    image: ${CRONOS_DOCKER_REPO}:${CRONOS_DOCKER_TAG}
+    platform: linux/amd64
+    container_name: cronos-zkevm-node
+    restart: unless-stopped
+    stop_grace_period: "120s"
+    environment:
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
+      DATABASE_URL: ${DATABASE_URL:-"postgresql://zksync:password@postgres:5432/zksync"}
+      EN_ETH_CLIENT_URL: ${EN_ETH_CLIENT_URL:-"https://ethereum-rpc.publicnode.com"}
+      EN_HEALTHCHECK_PORT: ${CL_HEALTHCHECK_PORT:-3081}
+      EN_HTTP_PORT: ${CL_RPC_PORT:-3060}
+      EN_WS_PORT: ${CL_WS_PORT:-3061}
+      EN_PROMETHEUS_PORT: ${CL_PROMETHEUS_PORT:-3312}
+      EN_MAIN_NODE_URL: ${EN_MAIN_NODE_URL:-"https://seed.zkevm.cronos.org"}
+      EN_MERKLE_TREE_PATH: ${EN_MERKLE_TREE_PATH:-"/db/ext-node/lightweight"}
+      EN_STATE_CACHE_PATH: ${EN_STATE_CACHE_PATH:-"/db/ext-node/state_keeper"}
+      EN_L1_BATCH_COMMIT_DATA_GENERATOR_MODE: ${EN_L1_BATCH_COMMIT_DATA_GENERATOR_MODE:-"Validium"}
+      EN_L1_CHAIN_ID: ${EN_L1_CHAIN_ID:-1}
+      EN_L2_CHAIN_ID: ${EN_L2_CHAIN_ID:-388}
+      EN_REQ_ENTITIES_LIMIT: ${EN_REQ_ENTITIES_LIMIT:-1000}
+      EN_PRUNING_ENABLED: ${EN_PRUNING_ENABLED:-"false"}
+      RUST_LOG: ${RUST_LOG:-"warn,zksync=info,zksync_core::metadata_calculator=debug,zksync_state=debug,zksync_utils=debug,zksync_web3_decl::client=error"}   
+    volumes:
+    - consensus:/db
+    <<: *logging
+    labels:
+        - traefik.enable=true
+        - traefik.http.routers.${CL_RPC_HOST}.service=${CL_RPC_HOST}
+        - traefik.http.routers.${CL_RPC_HOST}.entrypoints=websecure
+        - traefik.http.routers.${CL_RPC_HOST}.rule=Host(`${CL_RPC_HOST}.${DOMAIN}`)
+        - traefik.http.routers.${CL_RPC_HOST}.tls.certresolver=letsencrypt
+        - traefik.http.routers.${CL_RPC_HOST}lb.service=${CL_RPC_HOST}
+        - traefik.http.routers.${CL_RPC_HOST}lb.entrypoints=websecure
+        - traefik.http.routers.${CL_RPC_HOST}lb.rule=Host(`${CL_RPC_LB}.${DOMAIN}`)
+        - traefik.http.routers.${CL_RPC_HOST}lb.tls.certresolver=letsencrypt
+        - traefik.http.services.${CL_RPC_HOST}.loadbalancer.server.port=${CL_RPC_PORT}
+        - metrics.scrape=true
+        - metrics.path=/metrics
+        - metrics.port=${CL_PROMETHEUS_PORT}
+        - metrics.instance=consensus
+        - metrics.network=${CHAIN_SPEC}
+
+volumes:
+  consensus:

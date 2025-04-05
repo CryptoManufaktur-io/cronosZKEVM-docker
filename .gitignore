@@ -1,0 +1,5 @@
+.env*
+*.swp
+keys/
+*.crt
+*-dev
