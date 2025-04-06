@@ -759,48 +759,7 @@ upgrade() {
 
 
 start() {
-  if [ -f .env ]; then
-    set -a
-    . .env
-    set +a
-  fi
-
-  # Split COMPOSE_FILE into array
-  IFS=':' read -ra compose_files <<< "${COMPOSE_FILE:-docker-compose.yml}"
-
-  # Flags to detect services
-  has_postgres=0
-  has_zkevm=0
-
-  for file in "${compose_files[@]}"; do
-    if grep -q 'consensus:' "$file"; then
-      has_zkevm=1
-    fi
-    if grep -q 'postgres:' "$file"; then
-      has_postgres=1
-    fi
-  done
-
-  # Start postgres first
-  if [ "$has_postgres" -eq 1 ]; then
-    echo "🔄 Starting PostgreSQL service..."
-    COMPOSE_FILE=postgresql.yml __docompose up -d --remove-orphans postgres
-
-    echo "⏳ Waiting for database to finish restoring..."
-    until docker exec cronos-zkevm-postgres test -f /dump/.initialized 2>/dev/null; do
-      echo "🕒 Still waiting for .initialized... ($(date))"
-      sleep 30
-    done
-
-    echo "✅ PostgreSQL is ready!"
-  fi
-
-  # Start zkEVM after postgres is restored
-  if [ "$has_zkevm" -eq 1 ]; then
-    echo "🚀 Starting Cronos zkEVM node..."
-    COMPOSE_FILE=cronos_zkevm.yml __docompose up -d --remove-orphans consensus
-  fi
-
+  __docompose up -d --remove-orphans "$@"
 }
 
 

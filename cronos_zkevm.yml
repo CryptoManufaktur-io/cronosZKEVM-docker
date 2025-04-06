@@ -13,6 +13,9 @@ services:
     container_name: cronos-zkevm-node
     restart: unless-stopped
     stop_grace_period: "120s"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
       DATABASE_URL: ${DATABASE_URL:-"postgresql://zksync:password@postgres:5432/zksync"}
