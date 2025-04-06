@@ -19,9 +19,9 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "[ -f /dump/.initialized ]"]
-      interval: 1m
+      interval: 30s
       timeout: 5s
-      retries: 60
+      retries: 120
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-zksync}
       POSTGRES_USER: ${POSTGRES_USER:-zksync}
