@@ -1,5 +1,5 @@
 .env*
 *.swp
-keys/
-*.crt
-*-dev
+*.bak
+*.original
+custom.yml
