@@ -32,7 +32,7 @@ services:
       EN_L2_CHAIN_ID: ${EN_L2_CHAIN_ID:-388}
       EN_REQ_ENTITIES_LIMIT: ${EN_REQ_ENTITIES_LIMIT:-1000}
       EN_PRUNING_ENABLED: ${EN_PRUNING_ENABLED:-"false"}
-      RUST_LOG: ${RUST_LOG:-"warn,zksync=info,zksync_core::metadata_calculator=debug,zksync_state=debug,zksync_utils=debug,zksync_web3_decl::client=error"}   
+      RUST_LOG: ${RUST_LOG:-"warn,zksync=info,zksync_core::metadata_calculator=debug,zksync_state=debug,zksync_utils=debug,zksync_web3_decl::client=error"}
     volumes:
     - consensus:/db
     <<: *logging
