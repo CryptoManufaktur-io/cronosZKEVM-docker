@@ -7,10 +7,8 @@ x-logging: &logging
       tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
 
 services:
-  consensus:
+  cronos-zkevm:
     image: ${CRONOS_DOCKER_REPO}:${CRONOS_DOCKER_TAG}
-    platform: linux/amd64
-    container_name: cronos-zkevm-node
     restart: unless-stopped
     stop_grace_period: "120s"
     depends_on:
@@ -18,12 +16,8 @@ services:
         condition: service_healthy
     environment:
       DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
-      DATABASE_URL: ${DATABASE_URL:-"postgresql://zksync:password@postgres:5432/zksync"}
-      EN_ETH_CLIENT_URL: ${EN_ETH_CLIENT_URL:-"https://ethereum-rpc.publicnode.com"}
-      EN_HEALTHCHECK_PORT: ${CL_HEALTHCHECK_PORT:-3081}
-      EN_HTTP_PORT: ${CL_RPC_PORT:-3060}
-      EN_WS_PORT: ${CL_WS_PORT:-3061}
-      EN_PROMETHEUS_PORT: ${CL_PROMETHEUS_PORT:-3312}
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@${POSTGRES_NODE:-postgres}:5432/${POSTGRES_DB:-cronosdb}"
+      EN_ETH_CLIENT_URL: ${EN_ETH_CLIENT_URL}
       EN_MAIN_NODE_URL: ${EN_MAIN_NODE_URL:-"https://seed.zkevm.cronos.org"}
       EN_MERKLE_TREE_PATH: ${EN_MERKLE_TREE_PATH:-"/db/ext-node/lightweight"}
       EN_STATE_CACHE_PATH: ${EN_STATE_CACHE_PATH:-"/db/ext-node/state_keeper"}
@@ -33,25 +27,37 @@ services:
       EN_REQ_ENTITIES_LIMIT: ${EN_REQ_ENTITIES_LIMIT:-1000}
       EN_PRUNING_ENABLED: ${EN_PRUNING_ENABLED:-"false"}
       RUST_LOG: ${RUST_LOG:-"warn,zksync=info,zksync_core::metadata_calculator=debug,zksync_state=debug,zksync_utils=debug,zksync_web3_decl::client=error"}
+      EN_HEALTHCHECK_PORT: ${HEALTHCHECK_PORT:-3081}
+      EN_HTTP_PORT: ${RPC_PORT:-3060}
+      EN_WS_PORT: ${WS_PORT:-3061}
+      EN_PROMETHEUS_PORT: ${PROMETHEUS_PORT:-3312}
     volumes:
-    - consensus:/db
+    - cronos-zkevm-data:/db
     <<: *logging
     labels:
-        - traefik.enable=true
-        - traefik.http.routers.${CL_RPC_HOST}.service=${CL_RPC_HOST}
-        - traefik.http.routers.${CL_RPC_HOST}.entrypoints=websecure
-        - traefik.http.routers.${CL_RPC_HOST}.rule=Host(`${CL_RPC_HOST}.${DOMAIN}`)
-        - traefik.http.routers.${CL_RPC_HOST}.tls.certresolver=letsencrypt
-        - traefik.http.routers.${CL_RPC_HOST}lb.service=${CL_RPC_HOST}
-        - traefik.http.routers.${CL_RPC_HOST}lb.entrypoints=websecure
-        - traefik.http.routers.${CL_RPC_HOST}lb.rule=Host(`${CL_RPC_LB}.${DOMAIN}`)
-        - traefik.http.routers.${CL_RPC_HOST}lb.tls.certresolver=letsencrypt
-        - traefik.http.services.${CL_RPC_HOST}.loadbalancer.server.port=${CL_RPC_PORT}
-        - metrics.scrape=true
-        - metrics.path=/metrics
-        - metrics.port=${CL_PROMETHEUS_PORT}
-        - metrics.instance=consensus
-        - metrics.network=${CHAIN_SPEC}
+      - traefik.enable=true
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}.service=${RPC_HOST:-cronoszkevm}
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}.entrypoints=websecure
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}.rule=Host(`${RPC_HOST:-cronoszkevm}.${DOMAIN}`)
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}lb.service=${RPC_HOST:-cronoszkevm}
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}lb.entrypoints=websecure
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}lb.rule=Host(`${RPC_LB:-cronoszkevm-lb}.${DOMAIN}`)
+      - traefik.http.routers.${RPC_HOST:-cronoszkevm}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${RPC_HOST:-cronoszkevm}.loadbalancer.server.port=${RPC_PORT:-3060}
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}.service=${WS_HOST:-cronoszkevmws}
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}.entrypoints=websecure
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}.rule=Host(`${WS_HOST:-cronoszkevmws}.${DOMAIN}`)
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}.tls.certresolver=letsencrypt
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}lb.service=${WS_HOST:-cronoszkevmws}
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}lb.entrypoints=websecure
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}lb.rule=Host(`${WS_LB:-cronoszkevmws-lb}.${DOMAIN}`)
+      - traefik.http.routers.${WS_HOST:-cronoszkevmws}lb.tls.certresolver=letsencrypt
+      - traefik.http.services.${WS_HOST:-cronoszkevmws}.loadbalancer.server.port=${WS_PORT:-3061}
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=${PROMETHEUS_PORT:-3312}
+      - metrics.network=${CHAIN_SPEC}
 
 volumes:
-  consensus:
+  cronos-zkevm-data:

@@ -1,5 +1,5 @@
 services:
-  consensus:
+  cronos-zkevm:
     ports:
       - ${CL_RPC_PORT}:${CL_RPC_PORT}/tcp
       - ${CL_WS_PORT}:${CL_WS_PORT}/tcp
