@@ -3,52 +3,24 @@ set -Eeuo pipefail
 
 __project_name="CronosZKEVM Docker"
 __app_name="CronosZKEVM node"
-__sample_service="consensus"
+__sample_service="postgres"
 __docker_exe="docker"
 __compose_exe="docker compose"
 __compose_upgraded=0
 
-# Also adjust version() and __env_migrate for your chain, look for the word "Adjust" below
-
-status() {
-  __var="COMPOSE_FILE"
-  __value=$(__get_value_from_env "${__var}" "${__env_file}")
-
-  echo "Checking clients status"
-  case "${__value}" in
-    *postgres.yml* )
-      echo "----------------------------------------"
-      echo "PostgreSQL Status (.initialized check)"
-      if __docompose exec postgres test -f /dump/.initialized 2>/dev/null; then
-        echo "✅ PostgreSQL is restored and ready."
-      else
-        echo "⏳ PostgreSQL is still restoring or not initialized yet."
-      fi
-      echo
-      ;;&
-    *cronos-zkevm.yml* )
-      echo "----------------------------------------"
-      echo "Cronos zkEVM Node Sync Status"
-      __docompose exec curl -s http://localhost:3060 | jq || echo "❌ Could not fetch status. Node may not be up yet."
-      echo
-      ;;&
-  esac
-}
+# Also adjust version() and __prep_conffiles for your chain, look for the word "Adjust" below
+# If you are using an init container, adjust start() !
 
 version() {
-  echo "🔖 ${__project_name} version info"
+# script version
+  grep "^This is" README.md
   echo
-
-  if [ -f README.md ]; then
-    grep "^This is" README.md || true
-  fi
-  echo
-
   __var="COMPOSE_FILE"
-  __value=$(__get_value_from_env "${__var}" "${__env_file}")
-
+  __get_value_from_env "${__var}" "${__env_file}" "__value"
+# Client versions
+# Adjust for your clients and how to check their version
   case "${__value}" in
-    *postgres.yml* )
+    *postgresql.yml* )
       echo "----------------------------------------"
       echo "PostgreSQL Version:"
       __docompose exec postgres psql --version || echo "❌ Could not get Postgres version"
@@ -58,7 +30,7 @@ version() {
     *cronos-zkevm.yml* )
       echo "----------------------------------------"
       echo "Cronos zkEVM Node Version:"
-      __docompose exec consensus /usr/local/bin/zksync_external_node --version || echo "❌ Could not get zkEVM node version"
+      __docompose exec cronos-zkevm zksync_external_node --version || echo "❌ Could not get zkEVM node version"
       echo
       ;;&
   esac
@@ -246,12 +218,12 @@ __get_value_from_env() {
     }
 
     END {
-      # Print here-doc style so we can parse with awk
-      # Print the value as is, including quotes for multi-line
-      print "__value<<EOF"
-      print __value
-      print "EOF"
-      print "__found=" __found
+        # Print here-doc style so we can parse with awk
+        # Print the value as is, including quotes for multi-line
+        print "__value<<EOF"
+        print __value
+        print "EOF"
+        print "__found=" __found
     }
   ' "$__env_file")
 
