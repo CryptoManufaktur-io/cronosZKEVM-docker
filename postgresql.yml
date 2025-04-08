@@ -21,7 +21,6 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-cronosdb}
-      - CALL_TRACES=${CALL_TRACES:-false}
       - PG_SNAPSHOT=${PG_SNAPSHOT:-https://storage.googleapis.com/cronos-zkevm-mainnet-en-pgdump/external_node.tar.gz}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
