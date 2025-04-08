@@ -3,14 +3,15 @@ set -euo pipefail
 
 # Define paths
 DUMP_DIR="/dump"
-DUMP_TAR="${DUMP_DIR}/external_node.tar.gz"
+TAR_NAME="external_node.tar.gz"
+DUMP_TAR="${DUMP_DIR}/${TAR_NAME}"
 DUMP_LIST="${DUMP_DIR}/external_node/pg_restore.list"
 EXTRACTED_DUMP="${DUMP_DIR}/external_node/dump"
 INIT_FLAG="${DUMP_DIR}/.initialized"
 
 if [ -n "${PG_SNAPSHOT}" ]; then
   echo "[*] Downloading snapshot file"
-  aria2c -c -x6 -s6 --auto-file-renaming=false --conditional-get=true --allow-overwrite=true -o "$DUMP_TAR" "${PG_SNAPSHOT}"
+  aria2c -c -x6 -s6 --auto-file-renaming=false --conditional-get=true --allow-overwrite=true -d "$DUMP_DIR" -o "$TAR_NAME" "${PG_SNAPSHOT}"
 
   # Extract the dump
   echo "[*] Extracting pgdump..."
