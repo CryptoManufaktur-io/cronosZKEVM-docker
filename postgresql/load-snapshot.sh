@@ -9,7 +9,7 @@ EXTRACTED_DUMP="${DUMP_DIR}/external_node/dump"
 
 if [ -n "${PG_SNAPSHOT}" ]; then
   echo "[*] Downloading snapshot file"
-  aria2c -c -x6 -s6 --auto-file-renaming=false --conditional-get=true --allow-overwrite=true -d /tmp -o "$DUMP_TAR" "${PG_SNAPSHOT}"
+  aria2c -c -x6 -s6 --auto-file-renaming=false --conditional-get=true --allow-overwrite=true -o "$DUMP_TAR" "${PG_SNAPSHOT}"
   
   # Extract the dump
   echo "[*] Extracting pgdump..."
