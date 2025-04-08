@@ -23,13 +23,14 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-cronosdb}
       - PG_SNAPSHOT=${PG_SNAPSHOT:-https://storage.googleapis.com/cronos-zkevm-mainnet-en-pgdump/external_node.tar.gz}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U postgres  && [ -f /dump/.initialized ]"]
       start_period: 5s
       interval: 10s
       timeout: 5s
     volumes:
       - ./postgresql/load-snapshot.sh:/docker-entrypoint-initdb.d/load-snapshot.sh
       - postgres-data:/var/lib/postgresql/data/
+      - postgres-dump:/dump
     command: postgres ${PG_PARAMS}
     networks:
       default:
@@ -38,3 +39,4 @@ services:
 
 volumes:
   postgres-data:
+  postgres-dump:
