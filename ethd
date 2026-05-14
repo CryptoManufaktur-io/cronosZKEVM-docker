@@ -636,6 +636,8 @@ space() {
 
 check-sync() {
   if [[ $# -eq 0 ]]; then
+    echo "Using RPC_PORT: 3060 publicRPC: https://mainnet.zkevm.cronos.org composeService: cronos-zkevm"
+
     bash scripts/check_sync.sh --public-rpc https://mainnet.zkevm.cronos.org --compose-service cronos-zkevm --local-rpc http://127.0.0.1:3060 || true
   else
     bash scripts/check_sync.sh "$@" || true
